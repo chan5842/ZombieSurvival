@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Photon.Pun;
 
 public class Enemy : LivingEntity
 {
@@ -34,7 +35,6 @@ public class Enemy : LivingEntity
         }
     }
 
-
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -43,16 +43,20 @@ public class Enemy : LivingEntity
         meshRenderer = transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
     }
 
+    [PunRPC]
     public void Setup(float newHealth, float newDamage, float newSpeed, Color skinColor)
     {
         startingHealth = newHealth;
-        health = startingHealth;
+        health = newHealth;
         damage = newDamage;
         agent.speed = newSpeed;
         meshRenderer.material.color = skinColor;
     }
     private void Start()
     {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+
         StartCoroutine(UpdatePath());
     }
 
@@ -89,9 +93,12 @@ public class Enemy : LivingEntity
 
     void Update()
     {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
         animator.SetBool("HasTarget", hasTarget);
     }
 
+    [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPoint, Vector3 hitNormal)
     {
         // 죽지 않았다면
@@ -129,6 +136,8 @@ public class Enemy : LivingEntity
 
     private void OnTriggerStay(Collider other)
     {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
         if(!dead && Time.time >= lastAttcackTime + timeBetAttack)
         {
             LivingEntity attackTarget = other.GetComponent<LivingEntity>();

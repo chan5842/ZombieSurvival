@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : MonoBehaviourPun
 {
     public string moveAxisName = "Vertical";  //앞뒤 움직임을 위한 입력출 이름
     public string rotateAxisName = "Horizontal"; //좌우 회전을 위한 입력축 이름
@@ -17,6 +18,8 @@ public class PlayerInput : MonoBehaviour
 
     void Update()
     {
+        if (!photonView.IsMine)
+            return;
         if (GameManager.instance != null && GameManager.instance.isGameover)
         {
             move = 0;

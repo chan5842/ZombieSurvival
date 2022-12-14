@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class Gun : MonoBehaviour
+public class Gun : MonoBehaviourPun, IPunObservable
 {
     public enum State
     {
@@ -30,6 +31,28 @@ public class Gun : MonoBehaviour
 
     float lastFireTime;                 // 총알 마지막 발사 시간
 
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(ammoRemain);
+            stream.SendNext(magAmmo);
+            stream.SendNext(state);
+        }
+        else
+        {
+            ammoRemain = (int)stream.ReceiveNext();
+            magAmmo = (int)stream.ReceiveNext();
+            state = (State)stream.ReceiveNext();
+        }     
+    }
+    
+    [PunRPC]
+    public void AddAmmo(int ammo)
+    {
+        ammoRemain += ammo;
+    }
+
     void Awake()
     {
         gunAudioPlayer = GetComponent<AudioSource>();
@@ -37,6 +60,8 @@ public class Gun : MonoBehaviour
 
         bulletLineRenderer.positionCount = 2;
         bulletLineRenderer.enabled = false;
+
+        photonView.ObservedComponents[0] = this;
     }
 
     private void OnEnable()
@@ -65,11 +90,45 @@ public class Gun : MonoBehaviour
 
     void Shot()
     {
+        //RaycastHit hit;
+        //// 총알이 맞은 위치
+        //Vector3 hitPosition = Vector3.zero;
+
+        //if(Physics.Raycast(fireTransform.position, fireTransform.forward, out hit, fireDistance))
+        //{
+        //    IDamageable target = hit.collider.GetComponent<IDamageable>();
+
+        //    if (target != null)
+        //    {
+        //        target.OnDamage(gunData.damage, hit.point, hit.normal);
+        //    }
+        //    hitPosition = hit.point;
+        //}
+        //else
+        //{
+        //    hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
+        //}
+
+        //StartCoroutine(ShotEffect(hitPosition));
+
+        photonView.RPC("ShotProcessOnServer", RpcTarget.MasterClient);
+
+        magAmmo--;  // 현재 탄창 감소
+        // 탄창이 비었따면 상태 변경
+        if(magAmmo <=0 )
+        {
+            state = State.Empty;
+        }
+    }
+
+    [PunRPC]
+    void ShotProcessOnServer()
+    {
         RaycastHit hit;
         // 총알이 맞은 위치
         Vector3 hitPosition = Vector3.zero;
 
-        if(Physics.Raycast(fireTransform.position, fireTransform.forward, out hit, fireDistance))
+        if (Physics.Raycast(fireTransform.position, fireTransform.forward, out hit, fireDistance))
         {
             IDamageable target = hit.collider.GetComponent<IDamageable>();
 
@@ -84,16 +143,15 @@ public class Gun : MonoBehaviour
             hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
         }
 
-        StartCoroutine(ShotEffect(hitPosition));
-
-        magAmmo--;  // 현재 탄창 감소
-        // 탄창이 비었따면 상태 변경
-        if(magAmmo <=0 )
-        {
-            state = State.Empty;
-        }
+        photonView.RPC("ShowEffectProcessOnClients", RpcTarget.All, hitPosition);
+        //StartCoroutine(ShotEffect(hitPosition));
     }
 
+    [PunRPC]
+    void ShowEffectProcessOnClients(Vector3 hitPosition)
+    {
+        StartCoroutine(ShotEffect(hitPosition));
+    }
     IEnumerator ShotEffect(Vector3 hitPosition)
     {
         muzzleFlashEffect.Play();

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class PlayerHealth : LivingEntity
 {
@@ -37,12 +38,14 @@ public class PlayerHealth : LivingEntity
         playerShooter.enabled = true;
     }
 
+    [PunRPC]
     public override void RestoreHealth(float newHealth)
     {
         base.RestoreHealth(newHealth);
         healthSlider.value = health;    // 갱신된 체력으로 슬라이더 갱신
     }
 
+    [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPoint, Vector3 hitNormal)
     {
         // 사망 상태가 아니라면 피격 소리 출력
@@ -66,6 +69,8 @@ public class PlayerHealth : LivingEntity
         // 스크립트 비활성화
         playerMovement.enabled = false;             
         playerShooter.enabled = false;
+
+        Invoke("Respawn", 5f);
     }
 
     // 아이템과 충돌시 사용
@@ -77,15 +82,23 @@ public class PlayerHealth : LivingEntity
 
             if(item != null)
             {
-                item.Use(gameObject);
-                source.PlayOneShot(itemPickupClip);
+                if(PhotonNetwork.IsMasterClient)
+                    item.Use(gameObject);
             }
+            source.PlayOneShot(itemPickupClip);
         }
     }
-
-    // Update is called once per frame
-    void Update()
+    void Respawn()
     {
-        
+        if(photonView.IsMine)
+        {
+            Vector3 randomSpawnPos = Random.insideUnitSphere * 5f;
+            randomSpawnPos.y = 0f;
+
+            transform.position = randomSpawnPos;
+        }
+
+        gameObject.SetActive(false);
+        gameObject.SetActive(true);
     }
 }

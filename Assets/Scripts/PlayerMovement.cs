@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviourPun
 {
     public float moveSpeed = 5f; //앞뒤 움직임의 속도
     public float rotateSpeed = 180f; //좌우 회전 속도
@@ -24,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
     
     void FixedUpdate()
     {
+        if (!photonView.IsMine)
+            return;
+
         Rotate();
         Move();
 

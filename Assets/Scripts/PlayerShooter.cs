@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerShooter : MonoBehaviour
+public class PlayerShooter : MonoBehaviourPun
 {
     public Gun gun;
     public Transform gunPivot;          // 총 배치 기준점
@@ -30,6 +31,8 @@ public class PlayerShooter : MonoBehaviour
 
     void Update()
     {
+        if (!photonView.IsMine)
+            return;
         // 발사 입력 감지되면
         if(playerInput.fire)
         {
