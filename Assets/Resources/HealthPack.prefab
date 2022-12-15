@@ -143,7 +143,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 3
-  m_Range: 1
+  m_Range: 2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -223,7 +223,8 @@ MonoBehaviour:
   Synchronization: 0
   OwnershipTransfer: 0
   observableSearch: 2
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: -7098932402063482231}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

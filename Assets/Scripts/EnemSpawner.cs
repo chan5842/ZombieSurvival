@@ -42,26 +42,32 @@ public class EnemSpawner : MonoBehaviourPun, IPunObservable
     
     void Awake()
     {
-        //PhotonPeer.RegisterType(typeof(Color), 128, ColorS)
+        photonView.ObservedComponents[0] = this;
+        PhotonPeer.RegisterType(typeof(Color), 128, ColorSerialization.SerializeColor, ColorSerialization.DeserializeColor);
     }
 
     void Update()
     {
-        if(GameManager.instance != null &&
-            GameManager.instance.isGameover)
+        // 호스트만 좀비 생성
+        if(PhotonNetwork.IsMasterClient)
         {
-            return;
+            if (GameManager.instance != null &&
+              GameManager.instance.isGameover)
+            {
+                return;
+            }
+            if (enemies.Count <= 0)
+                SpawnWave();
         }
-        if (enemies.Count <= 0)
-            SpawnWave();
-
         UpdateUI();
     }
 
     // UI갱신
     void UpdateUI()
     {
-        UIManager.instance.UpdateWaveText(wave, enemies.Count);
+        // 현재 웨이브아 남은 적 수 표시
+        if (PhotonNetwork.IsMasterClient)
+            UIManager.instance.UpdateWaveText(wave, enemies.Count);
     }
 
     void SpawnWave()
@@ -86,15 +92,27 @@ public class EnemSpawner : MonoBehaviourPun, IPunObservable
         Color skinColor = Color.Lerp(Color.white, strongEnemyColor, intensity);
 
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        Enemy enemy = Instantiate(enemyPrefabs, spawnPoint.position, spawnPoint.rotation);
+        GameObject createEnemy = PhotonNetwork.Instantiate(enemyPrefabs.gameObject.name, spawnPoint.position, spawnPoint.rotation);
 
-        enemy.Setup(health, damage, speed, skinColor);
+        Enemy enemy = createEnemy.GetComponent<Enemy>();
+
+        enemy.photonView.RPC("Setup", RpcTarget.All, health, damage, speed, skinColor);
         enemies.Add(enemy);
 
         // 좀비의 onDeath 이벤트에 익명 메소드 등록
         enemy.onDeath += () => enemies.Remove(enemy);
-        enemy.onDeath += () => Destroy(enemy.gameObject, 10f);
+        enemy.onDeath += () => StartCoroutine(DestroyAfter(enemy.gameObject, 10f));
         enemy.onDeath += () => GameManager.instance.AddScore(100);
+    }
+
+    IEnumerator DestroyAfter(GameObject target, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if(target != null)
+        {
+            PhotonNetwork.Destroy(target);
+        }
     }
 
 

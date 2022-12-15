@@ -47,10 +47,12 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Start()
     {
+        FindObjectOfType<PlayerHealth>().onDeath += EndGame;
+
         Vector3 randomSpawnPos = Random.insideUnitSphere * 5f;
         randomSpawnPos.y = 0f;
         PhotonNetwork.Instantiate(playerPrefab.name, randomSpawnPos, Quaternion.identity);
-        //FindObjectOfType<PlayerHealth>().onDeath += EndGame;
+        
     }
     public void AddScore(int newScore)
     {
@@ -73,6 +75,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
             PhotonNetwork.LeaveRoom();
     }
 
+    // 방에서 나갈 때 자동으로 실행
     public override void OnLeftRoom()
     {
         SceneManager.LoadScene("Lobby");

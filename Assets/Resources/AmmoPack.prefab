@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6046534028424867332}
   - component: {fileID: 1133545995353611092}
   - component: {fileID: -2563207666809130891}
+  - component: {fileID: 3884592450428003307}
   m_Layer: 0
   m_Name: AmmoPack
   m_TagString: Untagged
@@ -62,7 +63,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 3
-  m_Range: 1
+  m_Range: 2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -142,7 +143,8 @@ MonoBehaviour:
   Synchronization: 0
   OwnershipTransfer: 0
   observableSearch: 2
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: -2563207666809130891}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -162,6 +164,19 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &3884592450428003307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045172808418600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06429d2161f1b0b449b47ff78233a6cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotSpeed: 60
 --- !u!1 &1496639653374222
 GameObject:
   m_ObjectHideFlags: 0
